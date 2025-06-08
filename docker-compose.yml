@@ -72,7 +72,7 @@ services:
       ME_CONFIG_MONGODB_URL: mongodb://mongo:mongo123@mongodb:27017/
       ME_CONFIG_BASICAUTH: "false"
     ports:
-      - "8081:8081"
+      - "8082:8081"
     depends_on:
       - mongodb
 
