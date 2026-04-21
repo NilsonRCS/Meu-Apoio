@@ -78,7 +78,6 @@ func (h *ContactHandler) UpdateContact(c *gin.Context) {
 		return
 	}
 
-	// Verificar se contato existe e pertence ao usuário
 	_, err := h.contactRepo.GetByID(contactID, userID.(string))
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -89,13 +88,11 @@ func (h *ContactHandler) UpdateContact(c *gin.Context) {
 		return
 	}
 
-	// Atualizar contato
 	if err := h.contactRepo.Update(contactID, userID.(string), &req); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao atualizar contato"})
 		return
 	}
 
-	// Buscar contato atualizado
 	updatedContact, err := h.contactRepo.GetByID(contactID, userID.(string))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao buscar contato atualizado"})
@@ -129,7 +126,6 @@ func (h *ContactHandler) DeleteContact(c *gin.Context) {
 		return
 	}
 
-	// Deletar contato
 	if err := h.contactRepo.Delete(contactID, userID.(string)); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao deletar contato"})
 		return

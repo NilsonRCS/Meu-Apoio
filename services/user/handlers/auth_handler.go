@@ -29,7 +29,6 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	// Verificar se email já existe
 	exists, err := h.userRepo.EmailExists(req.Email)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno do servidor"})
@@ -40,7 +39,6 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	// Verificar se username já existe
 	exists, err = h.userRepo.UsernameExists(req.Username)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro interno do servidor"})
@@ -51,14 +49,12 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	// Hash da senha
 	hashedPassword, err := utils.HashPassword(req.Password)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao processar senha"})
 		return
 	}
 
-	// Criar usuário
 	user := &models.User{
 		Username:     req.Username,
 		Email:        req.Email,
@@ -73,14 +69,12 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	// Gerar token JWT
 	token, err := utils.GenerateJWT(user.ID, user.Email, h.jwtSecret)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao gerar token"})
 		return
 	}
 
-	// Retornar resposta
 	response := models.LoginResponse{
 		Token: token,
 		User:  *user,
@@ -96,7 +90,6 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	// Buscar usuário por email
 	user, err := h.userRepo.GetByEmail(req.Email)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -107,20 +100,17 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	// Verificar senha
 	if !utils.CheckPasswordHash(req.Password, user.PasswordHash) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Credenciais inválidas"})
 		return
 	}
 
-	// Gerar token JWT
 	token, err := utils.GenerateJWT(user.ID, user.Email, h.jwtSecret)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao gerar token"})
 		return
 	}
 
-	// Retornar resposta
 	response := models.LoginResponse{
 		Token: token,
 		User:  *user,
