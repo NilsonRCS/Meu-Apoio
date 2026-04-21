@@ -4,9 +4,19 @@
 *.dll
 *.so
 *.dylib
+gateway/gateway
+bin/
+dist/
+build/
+__debug_bin
 
 # Arquivos de teste
 *.test
+*.prof
+*.pprof
+*.coverprofile
+coverage.out
+coverage/
 
 # Output
 *.out
@@ -29,6 +39,8 @@ vendor/
 # Arquivos de ambiente
 .env
 .env.local
+.env.*
+!.env.example
 
 # Diretórios temporários
 tmp/
@@ -36,4 +48,8 @@ temp/
 
 # Arquivos de sistema
 .DS_Store
-Thumbs.db 
+Thumbs.db
+
+# Node (não utilizado neste projeto Go)
+package-lock.json
+node_modules/

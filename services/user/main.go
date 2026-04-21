@@ -8,6 +8,7 @@ import (
 	"github.com/meuapoio/services/user/repository"
 	"github.com/meuapoio/shared/config"
 	"github.com/meuapoio/shared/database"
+	sharedmw "github.com/meuapoio/shared/middleware"
 )
 
 func main() {
@@ -52,7 +53,7 @@ func main() {
 
 	// Rotas protegidas (com autenticação)
 	protected := r.Group("/api/v1")
-	protected.Use(authHandler.AuthMiddleware())
+	protected.Use(sharedmw.AuthMiddleware(cfg))
 	{
 		// Usuários
 		protected.GET("/users/profile", userHandler.GetProfile)

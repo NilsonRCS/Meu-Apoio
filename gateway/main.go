@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -35,6 +36,8 @@ func main() {
 	// Middleware global
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
+	// Não confiar em proxies intermediários — evita spoofing de IP via X-Forwarded-For
+	r.SetTrustedProxies(nil)
 
 	// CORS
 	r.Use(cors.New(cors.Config{
@@ -103,6 +106,15 @@ func proxyToService(serviceURL string) gin.HandlerFunc {
 func createReverseProxy(target string) http.Handler {
 	url, _ := url.Parse(target)
 	proxy := httputil.NewSingleHostReverseProxy(url)
+
+	// Timeout para evitar que serviços lentos travem o gateway
+	proxy.Transport = &http.Transport{
+		DialContext: (&net.Dialer{
+			Timeout: 5 * time.Second,
+		}).DialContext,
+		ResponseHeaderTimeout: 30 * time.Second,
+		IdleConnTimeout:       90 * time.Second,
+	}
 
 	// Customizar o director para preservar headers
 	originalDirector := proxy.Director

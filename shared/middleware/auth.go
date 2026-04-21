@@ -5,42 +5,35 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/meuapoio/shared/config"
+	"github.com/meuapoio/shared/utils"
 )
-
-type Claims struct {
-	UserID   string `json:"user_id"`
-	Username string `json:"username"`
-	jwt.RegisteredClaims
-}
 
 func AuthMiddleware(cfg *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Token de acesso requerido"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Token de autorização necessário"})
 			c.Abort()
 			return
 		}
 
-		tokenString := strings.Replace(authHeader, "Bearer ", "", 1)
+		parts := strings.SplitN(authHeader, " ", 2)
+		if len(parts) != 2 || parts[0] != "Bearer" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Formato de token inválido"})
+			c.Abort()
+			return
+		}
 
-		token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-			return []byte(cfg.JWTSecret), nil
-		})
-
-		if err != nil || !token.Valid {
+		claims, err := utils.ValidateJWT(parts[1], cfg.JWTSecret)
+		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Token inválido"})
 			c.Abort()
 			return
 		}
 
-		if claims, ok := token.Claims.(*Claims); ok {
-			c.Set("user_id", claims.UserID)
-			c.Set("username", claims.Username)
-		}
-
+		c.Set("user_id", claims.UserID)
+		c.Set("user_email", claims.Email)
 		c.Next()
 	}
 }

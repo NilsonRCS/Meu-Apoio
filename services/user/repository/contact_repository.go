@@ -60,6 +60,10 @@ func (r *ContactRepository) GetByUserID(userID string) ([]*models.EmergencyConta
 		contacts = append(contacts, contact)
 	}
 
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
 	return contacts, nil
 }
 

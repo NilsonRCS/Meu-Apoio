@@ -13,6 +13,7 @@ type RateLimiter struct {
 	mutex    sync.RWMutex
 	rate     int
 	duration time.Duration
+	done     chan struct{}
 }
 
 type Visitor struct {
@@ -66,12 +67,18 @@ func NewRateLimiter(rate int, duration time.Duration) *RateLimiter {
 		visitors: make(map[string]*Visitor),
 		rate:     rate,
 		duration: duration,
+		done:     make(chan struct{}),
 	}
 
 	// Limpar visitantes antigos a cada minuto
 	go rl.cleanupRoutine()
 
 	return rl
+}
+
+// Stop encerra a goroutine de limpeza. Chame quando o RateLimiter não for mais necessário.
+func (rl *RateLimiter) Stop() {
+	close(rl.done)
 }
 
 func (rl *RateLimiter) cleanupRoutine() {
@@ -82,6 +89,8 @@ func (rl *RateLimiter) cleanupRoutine() {
 		select {
 		case <-ticker.C:
 			rl.cleanup()
+		case <-rl.done:
+			return
 		}
 	}
 }
